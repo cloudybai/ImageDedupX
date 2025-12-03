@@ -1,683 +1,320 @@
-# 🎯 ImageDedupX - Intelligent Image Deduplication with Incremental Indexing
+# FAISS图像相似度检测服务
 
-<div align="center">
+基于原始 [similarities](https://github.com/cloudybai/similarities) 项目封装的RESTful API服务，提供高性能的图像相似度检测功能。
 
-[![Python Version](https://img.shields.io/badge/python-3.7+-blue.svg)](https://www.python.org/downloads/)
-[![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
-[![FAISS](https://img.shields.io/badge/powered%20by-FAISS-orange.svg)](https://github.com/facebookresearch/faiss)
-[![Deep Learning](https://img.shields.io/badge/features-ResNet%20%7C%20ViT%20%7C%20Traditional%20CV-red.svg)](https://github.com/yourusername/imagedupx)
+## 功能特性
 
-*High-performance image similarity detection with smart incremental updates and multi-modal feature fusion*
+- 🚀 **高性能检索**: 基于FAISS向量搜索引擎，支持百万级图像库实时检索
+- 🧠 **多模态特征**: 融合ResNet-50、Vision Transformer和传统CV特征
+- 🔧 **RESTful API**: 标准化的Web API接口，易于集成
+- 📦 **Docker部署**: 开箱即用的容器化部署方案
+- 🎯 **高精度匹配**: 检索精度可达90%以上
+- ⚡ **异步处理**: 支持后台异步索引构建
 
-[Key Features](#-key-features) • [Installation](#-installation) • [Quick Start](#-quick-start) • [Documentation](#-documentation) • [Performance](#-performance)
-
-</div>
-
----
-
-## 🌟 Overview
-
-**ImageDedupX** is a production-ready, intelligent image deduplication system built on FAISS (Facebook AI Similarity Search). It combines state-of-the-art deep learning models with efficient incremental indexing to provide blazing-fast similarity detection for large-scale image datasets.
-
-### Why ImageDedupX?
-
-- **🚀 10-100x Faster Updates**: Incremental indexing only processes changed images
-- **🧠 Multi-Modal Intelligence**: Fuses ResNet-50, Vision Transformer (ViT), and traditional CV features
-- **💾 Smart Caching**: MD5-based file hashing prevents redundant computation
-- **🔄 Automatic Change Detection**: Intelligently identifies new, modified, and deleted images
-- **⚡ GPU Acceleration**: Optional CUDA support for maximum performance
-- **📊 Production Ready**: Battle-tested on datasets with 10K+ images
-
----
-
-## ✨ Key Features
-
-### 🔍 Advanced Similarity Detection
-
-- **Multi-Scale Feature Extraction**
-  - Deep learning: ResNet-50 (2048-dim) + ViT-Base (768-dim)
-  - Traditional CV: Color histograms + LBP texture features
-  - Weighted fusion with configurable coefficients
-
-- **Flexible Search Modes**
-  - Top-K retrieval with adjustable K
-  - Threshold-based filtering (0.0-1.0)
-  - Support for various image formats (JPG, PNG, BMP, etc.)
-
-### 🔄 Incremental Indexing System
+## 系统架构
 
 ```
-Traditional Approach          ImageDedupX Approach
-─────────────────            ──────────────────────
-Add 100 images               Add 100 images
-  ↓                            ↓
-Reprocess 10,000 images      Process only 100 new images
-  ↓                            ↓
-Rebuild entire index         Incremental index update
-  ↓                            ↓
-⏱️ 30 minutes                ⏱️ 2 minutes (15x faster)
+┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
+│   Web Client    │    │   Mobile App    │    │  Other Services │
+└─────────┬───────┘    └─────────┬───────┘    └─────────┬───────┘
+          │                      │                      │
+          └──────────────────────┼──────────────────────┘
+                                 │
+                    ┌─────────────▼──────────────┐
+                    │      Nginx (Optional)      │
+                    └─────────────┬──────────────┘
+                                 │
+                    ┌─────────────▼──────────────┐
+                    │   FAISS Image Service      │
+                    │   - Flask REST API         │
+                    │   - Multi-modal Features   │
+                    │   - FAISS Index            │
+                    └─────────────┬──────────────┘
+                                 │
+                    ┌─────────────▼──────────────┐
+                    │    File Storage            │
+                    │   - Images                 │
+                    │   - Indices                │
+                    │   - Cache                  │
+                    └────────────────────────────┘
 ```
 
-**Intelligent Change Detection**:
-- MD5 hash-based file change detection
-- Automatic removal of deleted images
-- Feature cache preservation for unchanged images
-- Metadata tracking (version, timestamps, statistics)
+## 快速开始
 
-### 💡 Smart Caching Architecture
+### 方式1: Docker部署（推荐）
 
-```
-features_cache.pkl
-├── Feature vectors (normalized)
-├── File MD5 hashes
-├── Image path mappings
-└── Index metadata
-```
-
-**Benefits**:
-- Avoids redundant feature extraction
-- Persistent across sessions
-- Automatic cache invalidation on file changes
-- Efficient storage with pickle serialization
-
----
-
-## 📦 Installation
-
-### Prerequisites
-
-- Python 3.7+
-- CUDA 10.2+ (optional, for GPU acceleration)
-
-### Install via pip
-
+1. **克隆项目**
 ```bash
-# Clone the repository
-git clone https://github.com/cloudybai/imagedupx.git
-cd imagedupx
+git clone https://github.com/cloudybai/similarities.git
+cd similarities
+```
 
-# Install dependencies
+2. **准备配置文件**
+```bash
+# 将配置文件复制到项目根目录
+cp config.json.example config.json
+# 根据需要修改配置
+```
+
+3. **启动服务**
+```bash
+# 构建并启动
+docker-compose up -d
+
+# 查看日志
+docker-compose logs -f faiss-image-service
+```
+
+4. **验证服务**
+```bash
+curl http://localhost:8080/api/v1/health
+```
+
+### 方式2: 本地部署
+
+1. **安装依赖**
+```bash
 pip install -r requirements.txt
-
-# For GPU support (optional)
-pip install faiss-gpu
 ```
 
-### Dependencies
-
-```txt
-torch>=1.9.0
-torchvision>=0.10.0
-timm>=0.5.4
-faiss-cpu>=1.7.2  # or faiss-gpu for GPU support
-scikit-learn>=0.24.0
-opencv-python>=4.5.0
-Pillow>=8.0.0
-tqdm>=4.62.0
-numpy>=1.19.0
-```
-
----
-
-## 🚀 Quick Start
-
-### 1️⃣ Build Initial Index
-
+2. **准备原始检测器**
 ```bash
-python improved_faiss_detector.py \
-    --mode build \
-    --directory /path/to/images \
-    --cache-file features.pkl \
-    --index-file image_index.index
+# 确保faiss_image_similarity.py在同一目录
 ```
 
-**Example Output**:
-```
-正在初始化增量FAISS图像相似度检测器...
-加载ResNet模型... ✓
-加载Vision Transformer... ✓
-初始化传统CV特征提取器... ✓
-检测器初始化完成
-
-开始构建索引...
-提取特征: 100%|████████████| 1000/1000 [02:15<00:00, 7.38it/s]
-构建FAISS索引...
-索引已保存到: image_index.index
-
-索引构建完成，耗时: 135.23秒
-当前索引包含: 1000 张图片
-特征维度: 3360
-```
-
-### 2️⃣ Incremental Update (New!)
-
+3. **启动服务**
 ```bash
-# After adding/modifying/deleting images in your directory
-python improved_faiss_detector.py \
-    --mode update \
-    --directory /path/to/images \
-    --cache-file features.pkl \
-    --index-file image_index.index
+python faiss_service.py --config config.json
 ```
 
-**Automatic Detection**:
-```
-检测图片变化...
-✓ 新增: 50 张图片
-✓ 修改: 5 张图片
-✓ 删除: 3 张图片
-✓ 未变化: 942 张图片 (跳过)
+## API使用说明
 
-处理变化的图片...
-提取特征: 100%|████████████| 55/55 [00:18<00:00, 3.05it/s]
-重建索引...
-
-增量更新完成，耗时: 21.34秒 (比全量重建快 6.3x)
-```
-
-### 3️⃣ Search Similar Images
-
+### 1. 健康检查
 ```bash
-python improved_faiss_detector.py \
-    --mode search \
-    --target /path/to/query.jpg \
-    --index-file image_index.index \
-    --directory /path/to/images \
-    --threshold 0.65 \
-    --top-k 10
+GET /api/v1/health
 ```
 
-**Sample Results**:
-```
-目标图片: /path/to/query.jpg
-搜索耗时: 0.023秒
-相似度阈值: 0.65
-
-找到 8 张相似图片：
-────────────────────────────────────────────────────────────────
- 1. images/photo_001.jpg                相似度: 0.9823
- 2. images/photo_002.jpg                相似度: 0.9156
- 3. images/photo_015.jpg                相似度: 0.8734
- 4. images/photo_089.jpg                相似度: 0.8201
- 5. images/photo_123.jpg                相似度: 0.7845
- 6. images/photo_456.jpg                相似度: 0.7412
- 7. images/photo_789.jpg                相似度: 0.7089
- 8. images/photo_234.jpg                相似度: 0.6723
-────────────────────────────────────────────────────────────────
-```
-
----
-
-## 📖 Documentation
-
-### Command Line Interface
-
-#### Core Arguments
-
-| Argument | Type | Description | Required |
-|----------|------|-------------|----------|
-| `--mode` | str | Operation mode: `build`, `update`, or `search` | ✓ |
-| `--directory` | str | Path to image directory | ✓ |
-| `--cache-file` | str | Feature cache file path (`.pkl`) | Recommended |
-| `--index-file` | str | FAISS index file path (`.index`) | Default: `image_index.index` |
-
-#### Search Arguments
-
-| Argument | Type | Description | Default |
-|----------|------|-------------|---------|
-| `--target` | str | Query image path (required for search mode) | - |
-| `--threshold` | float | Similarity threshold (0.0-1.0) | 0.5 |
-| `--top-k` | int | Number of results to return | 10 |
-
-#### Model Arguments
-
-| Argument | Type | Description | Default |
-|----------|------|-------------|---------|
-| `--disable-resnet` | flag | Disable ResNet-50 features | Enabled |
-| `--disable-vit` | flag | Disable ViT features | Enabled |
-| `--disable-traditional` | flag | Disable traditional CV features | Enabled |
-| `--use-gpu` | flag | Enable GPU acceleration | CPU |
-
-#### Advanced Arguments
-
-| Argument | Type | Description | Default |
-|----------|------|-------------|---------|
-| `--force-rebuild` | flag | Force complete index rebuild | False |
-| `--index-type` | str | FAISS index type | `flat` |
-
-### Similarity Threshold Guidelines
-
-| Threshold | Use Case | Precision | Recall |
-|-----------|----------|-----------|--------|
-| ≥ 0.85 | Exact duplicates / Near-exact matches | Very High | Low |
-| ≥ 0.65 | Balanced similarity detection | High | Medium |
-| ≥ 0.45 | Broad similarity search | Medium | High |
-| ≥ 0.30 | Exploratory search | Low | Very High |
-
-**Recommendations**:
-- **Deduplication**: Use 0.85+ to find true duplicates
-- **Similar images**: Use 0.60-0.75 for related content
-- **Visual search**: Use 0.45-0.60 for broader results
-
----
-
-## 🏗️ Architecture
-
-### Feature Extraction Pipeline
-
-```
-Input Image
-    │
-    ├─────────────────┬──────────────────┬─────────────────┐
-    ↓                 ↓                  ↓                 ↓
-ResNet-50        ViT-Base         Color Hist.        LBP Texture
-(2048-dim)       (768-dim)        (96-dim)           (256-dim)
-    │                 │                  │                 │
-    └─────────────────┴──────────────────┴─────────────────┘
-                                ↓
-                      Weighted Fusion (0.3:0.5:0.2)
-                                ↓
-                      L2 Normalization
-                                ↓
-                    Combined Features (3360-dim)
-```
-
-### Incremental Update Workflow
-
-```
-┌─────────────────────────────────────────────────────┐
-│  1. Scan Directory                                  │
-│     • List all current images                       │
-│     • Compute MD5 hashes                            │
-└─────────────┬───────────────────────────────────────┘
-              ↓
-┌─────────────────────────────────────────────────────┐
-│  2. Detect Changes                                  │
-│     • Compare with cached hashes                    │
-│     • Identify: NEW / MODIFIED / DELETED / SAME     │
-└─────────────┬───────────────────────────────────────┘
-              ↓
-┌─────────────────────────────────────────────────────┐
-│  3. Process Changes Only                            │
-│     • Extract features for NEW images               │
-│     • Re-extract features for MODIFIED images       │
-│     • Skip SAME images (use cached features)        │
-└─────────────┬───────────────────────────────────────┘
-              ↓
-┌─────────────────────────────────────────────────────┐
-│  4. Update Index                                    │
-│     • Remove DELETED images from index              │
-│     • Add/update feature vectors                    │
-│     • Rebuild FAISS index with new data             │
-└─────────────┬───────────────────────────────────────┘
-              ↓
-┌─────────────────────────────────────────────────────┐
-│  5. Save Updated State                              │
-│     • Serialize feature cache                       │
-│     • Save FAISS index to disk                      │
-│     • Update metadata (timestamps, counts)          │
-└─────────────────────────────────────────────────────┘
-```
-
-### File Structure
-
-```
-project/
-├── improved_faiss_detector.py      # Main application
-├── features.pkl                    # Feature cache (critical for incremental updates)
-├── image_index.index              # FAISS index file
-├── image_index_paths.pkl          # Image path mappings + metadata
-└── images/                        # Your image directory
-    ├── img_001.jpg
-    ├── img_002.png
-    └── ...
-```
-
----
-
-## 📊 Performance
-
-### Benchmark Results
-
-Tested on a dataset of **10,000 images** (mixed resolution, avg 2MP)
-
-| Operation | Without Cache | With Cache | Speedup |
-|-----------|---------------|------------|---------|
-| **Initial Build** | 35 min | 35 min | 1.0x |
-| **Add 100 images** | 35 min | 2.1 min | **16.7x** |
-| **Modify 50 images** | 35 min | 1.4 min | **25.0x** |
-| **Search (1 query)** | - | 0.023 s | - |
-
-**Hardware**: Intel Xeon E5-2680 v4, 128GB RAM, NVIDIA V100 (GPU mode)
-
-### Scalability
-
-| Dataset Size | Index Build Time | Search Time | Memory Usage |
-|--------------|------------------|-------------|--------------|
-| 1,000 images | 2.5 min | 0.010 s | 1.2 GB |
-| 10,000 images | 35 min | 0.023 s | 12 GB |
-| 100,000 images | 6.2 hours* | 0.089 s | 120 GB* |
-
-*Estimated based on linear scaling; actual performance may vary
-
-### Feature Extraction Speed
-
-| Model | Images/Second (CPU) | Images/Second (GPU) |
-|-------|---------------------|---------------------|
-| ResNet-50 | 8.2 | 45.3 |
-| ViT-Base | 3.7 | 28.6 |
-| Traditional CV | 15.8 | 15.8 (CPU-bound) |
-| **Combined** | **3.1** | **21.4** |
-
----
-
-## 🔧 Advanced Usage
-
-### Example 1: Batch Processing Workflow
-
+### 2. 构建索引
 ```bash
-#!/bin/bash
-# daily_update.sh - Automated daily image deduplication
+POST /api/v1/build_index
+Content-Type: application/json
 
-# Set paths
-IMAGE_DIR="/data/production_images"
-CACHE_FILE="/data/indexes/features.pkl"
-INDEX_FILE="/data/indexes/image_index.index"
-
-# Run incremental update
-python improved_faiss_detector.py \
-    --mode update \
-    --directory "$IMAGE_DIR" \
-    --cache-file "$CACHE_FILE" \
-    --index-file "$INDEX_FILE" \
-    --use-gpu
-
-# Log completion
-echo "[$(date)] Index update completed" >> /var/log/imagedup.log
-```
-
-### Example 2: Python API Usage
-
-```python
-from improved_faiss_detector import IncrementalFAISSDetector
-
-# Initialize detector
-detector = IncrementalFAISSDetector(
-    enable_resnet=True,
-    enable_vit=True,
-    enable_traditional=True,
-    use_gpu=True
-)
-
-# Build/update index
-detector.build_or_update_index(
-    directory='/path/to/images',
-    cache_file='features.pkl',
-    force_rebuild=False  # Use incremental update
-)
-
-# Save index
-detector.save_index('image_index.index')
-
-# Load index for searching
-detector.load_index('image_index.index')
-
-# Search similar images
-results = detector.search_similar_images(
-    target_image='query.jpg',
-    k=10,
-    threshold=0.65
-)
-
-# Process results
-for image_path, similarity in results:
-    print(f"{image_path}: {similarity:.4f}")
-```
-
-### Example 3: Custom Feature Weights
-
-Modify the feature fusion weights in the code:
-
-```python
-# In extract_combined_features() method
-features.append(resnet_feat * 0.4)    # Increase ResNet weight
-features.append(vit_feat * 0.5)       # Keep ViT weight
-features.append(traditional_feat * 0.1)  # Decrease traditional weight
-```
-
-### Example 4: GPU Acceleration
-
-```bash
-# Check GPU availability
-nvidia-smi
-
-# Run with GPU acceleration
-python improved_faiss_detector.py \
-    --mode build \
-    --directory /path/to/images \
-    --cache-file features.pkl \
-    --index-file image_index.index \
-    --use-gpu
-
-# For multi-GPU systems, FAISS will automatically use the first GPU (GPU:0)
-```
-
----
-
-## 🛠️ Troubleshooting
-
-### Common Issues
-
-#### Issue 1: "ModuleNotFoundError: No module named 'faiss'"
-
-**Solution**:
-```bash
-# For CPU
-pip install faiss-cpu
-
-# For GPU (requires CUDA)
-pip install faiss-gpu
-```
-
-#### Issue 2: Incremental Update Not Working
-
-**Solution**:
-```bash
-# Verify cache file exists
-ls -lh features.pkl
-
-# Force rebuild if cache is corrupted
-python improved_faiss_detector.py --mode update --force-rebuild \
-    --directory /path/to/images --cache-file features.pkl
-```
-
-#### Issue 3: Out of Memory (OOM)
-
-**Solutions**:
-- Reduce batch size (modify code if needed)
-- Process images in smaller directories
-- Use CPU mode instead of GPU
-- Disable some feature extractors:
-  ```bash
-  python improved_faiss_detector.py --mode build \
-      --disable-vit \
-      --directory /path/to/images
-  ```
-
-#### Issue 4: Slow Performance
-
-**Solutions**:
-1. **Enable GPU acceleration**: `--use-gpu`
-2. **Use cache file**: Always specify `--cache-file`
-3. **Disable unnecessary features**: Use `--disable-traditional` for faster processing
-4. **Check disk I/O**: Move cache files to SSD
-
-#### Issue 5: Poor Search Results
-
-**Solutions**:
-1. **Adjust threshold**: Lower threshold (e.g., 0.45) for more results
-2. **Increase top-k**: Use `--top-k 20` for more candidates
-3. **Check image quality**: Ensure images are not corrupted
-4. **Verify index**: Rebuild index if corrupted
-
----
-
-## 🔬 Technical Details
-
-### Feature Vector Composition
-
-| Component | Dimension | Weight | Normalization |
-|-----------|-----------|--------|---------------|
-| ResNet-50 (fc layer) | 2048 | 0.3 | L2 |
-| ViT-Base (CLS token) | 768 | 0.5 | L2 |
-| Color Histogram (RGB) | 96 | 0.1 | L2 |
-| LBP Texture | 256 | 0.1 | L2 |
-| **Total** | **3360** | **1.0** | **L2** |
-
-### FAISS Index Configuration
-
-- **Index Type**: `IndexFlatL2` (brute-force L2 distance)
-- **Metric**: Euclidean distance (L2)
-- **Similarity Score**: `1.0 - (distance / max_distance)` normalized to [0, 1]
-
-**Why Flat Index?**
-- Exact nearest neighbor search (100% recall)
-- Suitable for datasets up to 100K images
-- No accuracy trade-off for speed
-
-**Future Considerations**:
-- For >100K images, consider `IndexIVFFlat` or `IndexHNSW`
-- Product Quantization (PQ) for memory efficiency
-- GPU index for large-scale deployment
-
-### Cache File Structure
-
-```python
 {
-    'features': {
-        'image_path': feature_vector (np.ndarray, shape=(3360,))
-    },
-    'hashes': {
-        'image_path': 'md5_hash_string'
-    },
-    'metadata': {
-        'version': '2.1.0',
-        'created_time': '2024-12-03 10:30:45',
-        'last_updated': '2024-12-03 15:22:10',
-        'total_images': 10000,
-        'feature_dim': 3360
-    }
+  "index_name": "my_index",
+  "image_directory": "/path/to/images",
+  "model_config": {
+    "enable_resnet": true,
+    "enable_vit": true,
+    "enable_traditional": true,
+    "index_type": "flat",
+    "use_gpu": false
+  },
+  "cache_file": "/path/to/cache.pkl"
 }
 ```
 
----
+### 3. 搜索相似图片
+```bash
+POST /api/v1/search
+Content-Type: multipart/form-data
 
-## 🤝 Contributing
+form-data:
+- image: [图片文件]
+- index_name: "my_index"
+- top_k: 10
+- threshold: 0.5
+```
 
-We welcome contributions! Here's how you can help:
+### 4. 获取服务状态
+```bash
+GET /api/v1/status
+```
 
-### Development Setup
+### 5. 列出所有索引
+```bash
+GET /api/v1/indices
+```
+
+### 6. 删除索引
+```bash
+DELETE /api/v1/indices/{index_name}
+```
+
+## Python客户端使用
+
+```python
+from client_example import FAISSImageClient
+
+# 创建客户端
+client = FAISSImageClient("http://localhost:8080")
+
+# 构建索引
+result = client.build_index(
+    index_name="test_index",
+    image_directory="/path/to/images"
+)
+
+# 等待索引构建完成
+client.wait_for_index_ready("test_index")
+
+# 搜索相似图片
+results = client.search_similar(
+    image_path="/path/to/query.jpg",
+    index_name="test_index",
+    top_k=5,
+    threshold=0.7
+)
+
+print(f"找到 {len(results['results'])} 张相似图片")
+```
+
+## 配置说明
+
+### config.json 参数详解
+
+```json
+{
+  "host": "0.0.0.0",              // 服务绑定地址
+  "port": 8080,                   // 服务端口
+  "debug": false,                 // 调试模式
+  "max_file_size": 16777216,      // 最大文件大小(16MB)
+  "upload_folder": "./uploads",   // 上传临时目录
+  "index_folder": "./indices",    // 索引存储目录
+  "cache_folder": "./cache",      // 缓存目录
+  "allowed_extensions": [         // 支持的图片格式
+    "jpg", "jpeg", "png", "bmp", "gif", "tiff", "webp"
+  ],
+  "enable_cors": true,            // 启用CORS
+  "log_level": "INFO"             // 日志级别
+}
+```
+
+### 模型配置参数
+
+```json
+{
+  "enable_resnet": true,          // 启用ResNet特征 (权重0.3)
+  "enable_vit": true,             // 启用ViT特征 (权重0.5)
+  "enable_traditional": true,     // 启用传统CV特征 (权重0.2)
+  "index_type": "flat",           // FAISS索引类型
+  "use_gpu": false                // 是否使用GPU加速
+}
+```
+
+## 性能调优
+
+### 1. 相似度阈值设置
+- **高精度场景**: threshold >= 0.85
+- **高召回场景**: threshold >= 0.65  
+- **探索性检索**: threshold >= 0.45
+
+### 2. 硬件优化
+- **CPU**: 推荐8核以上，支持AVX2指令集
+- **内存**: 建议16GB以上，约4KB/张图片
+- **GPU**: 支持CUDA的NVIDIA显卡（可选）
+
+### 3. 索引类型选择
+- **Flat索引**: 精度最高，适合中小规模数据集
+- **IVF索引**: 速度较快，适合大规模数据集
+- **HNSW索引**: 内存效率高，适合内存受限环境
+
+## 生产环境部署
+
+### 使用Nginx + Docker Compose
+
+```yaml
+# docker-compose.prod.yml
+version: '3.8'
+services:
+  faiss-service:
+    build: .
+    volumes:
+      - /data/images:/app/data:ro
+      - ./indices:/app/indices
+      - ./cache:/app/cache
+    environment:
+      - WORKERS=4
+    restart: always
+    
+  nginx:
+    image: nginx:alpine
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf
+      - ./ssl:/etc/nginx/ssl
+    depends_on:
+      - faiss-service
+    restart: always
+```
+
+### 监控和日志
 
 ```bash
-# Fork and clone the repository
-git clone https://github.com/yourusername/imagedupx.git
-cd imagedupx
+# 查看服务状态
+curl http://localhost:8080/api/v1/status
 
-# Create a virtual environment
-python -m venv venv
-source venv/bin/activate  # On Windows: venv\Scripts\activate
+# 查看容器日志
+docker-compose logs -f faiss-image-service
 
-# Install development dependencies
-pip install -r requirements-dev.txt
-
-# Run tests
-pytest tests/
+# 监控资源使用
+docker stats faiss-image-service
 ```
 
-### Contribution Guidelines
+## 故障排除
 
-1. **Code Style**: Follow PEP 8
-2. **Testing**: Add unit tests for new features
-3. **Documentation**: Update README and docstrings
-4. **Commits**: Use meaningful commit messages
+### 常见问题
 
-### Areas for Contribution
+1. **内存不足**
+   - 减少图片数量或降低特征维度
+   - 增加系统内存或使用内存映射
 
-- [ ] Add support for more index types (IVF, HNSW)
-- [ ] Implement distributed indexing for multi-node clusters
-- [ ] Add web UI for visualization
-- [ ] Support video frame deduplication
-- [ ] Integrate additional feature extractors (CLIP, DINO)
-- [ ] Add comprehensive unit tests
-- [ ] Performance profiling and optimization
-- [ ] Docker containerization
+2. **索引构建失败**
+   - 检查图片目录权限
+   - 确保图片格式支持
+   - 查看详细错误日志
 
----
+3. **搜索速度慢**
+   - 考虑使用GPU加速
+   - 调整FAISS索引类型
+   - 增加系统资源
 
-## 📄 License
+4. **特征提取失败**
+   - 检查深度学习模型是否正确加载
+   - 确保图片文件完整性
+   - 验证依赖库版本
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+### 调试模式
 
----
+```bash
+# 启用调试模式
+python faiss_service.py --debug --config config.json
 
-## 🙏 Acknowledgments
-
-- **FAISS**: Facebook AI Similarity Search team for the excellent similarity search library
-- **PyTorch**: For deep learning framework
-- **timm**: Ross Wightman for the comprehensive model library
-- **OpenCV**: For traditional computer vision utilities
-
----
-
-## 📚 Citation
-
-If you use ImageDedupX in your research, please cite:
-
-```bibtex
-@software{imagedupx2024,
-  title = {ImageDedupX: Intelligent Image Deduplication with Incremental Indexing},
-  author = {Yunpeng Bai},
-  year = {2025},
-  url = {https://github.com/cloudybai/imagedupx}
-}
+# 查看详细日志
+export LOG_LEVEL=DEBUG
+python faiss_service.py --config config.json
 ```
 
----
+## 贡献指南
 
-## 📞 Contact & Support
+1. Fork项目仓库
+2. 创建功能分支: `git checkout -b feature/new-feature`
+3. 提交更改: `git commit -am 'Add new feature'`
+4. 推送分支: `git push origin feature/new-feature`
+5. 提交Pull Request
 
-- **Issues**: [GitHub Issues](https://github.com/cloudybai/imagedupx/issues)
-- **Discussions**: [GitHub Discussions](https://github.com/cloudybai/imagedupx/discussions)
-- **Email**: cloudbai@nwpu.edu.cn
+## 许可证
 
----
+本项目基于MIT许可证开源，详见 [LICENSE](LICENSE) 文件。
 
-## 🗺️ Roadmap
+## 技术支持
 
-### Version 2.2 (Q1 2025)
-- [ ] Web-based UI for index management
-- [ ] REST API for remote querying
-- [ ] Support for video frame deduplication
-- [ ] Docker image for easy deployment
-
-### Version 2.3 (Q2 2025)
-- [ ] Distributed indexing with Dask
-- [ ] CLIP integration for semantic similarity
-- [ ] Advanced clustering algorithms
-- [ ] Performance dashboard
-
-### Version 3.0 (Q3 2025)
-- [ ] Multi-modal search (text-to-image)
-- [ ] Real-time streaming index updates
-- [ ] Cloud storage integration (S3, GCS)
-- [ ] Enterprise features (user management, quotas)
+- 📧 邮箱: cloud.bai@outlook.com
+- 🔗 项目主页: https://github.com/cloudybai/similarities
+- 📖 技术文档: https://github.com/cloudybai/similarities/wiki
 
 ---
 
-<div align="center">
-
-**⭐ Star this repository if you find it useful!**
-
-Made with ❤️ by the ImageDedupX team
-
-</div>
+**版本**: v2.0.0  
+**最后更新**: 2025年7月
