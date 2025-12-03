@@ -1,0 +1,70 @@
+# -*- coding: utf-8 -*-
+"""
+@author:XuMing(xuming624@qq.com)
+@description: 
+"""
+import glob
+import sys
+
+from PIL import Image
+
+sys.path.append('..')
+from similarities import ImageHashSimilarity, SiftSimilarity, ClipSimilarity
+
+
+def sim_and_search(m):
+    print(m)
+    # similarity
+    sim_scores = m.similarity(imgs1, imgs2)
+    print('sim scores: ', sim_scores)
+    for (idx, i), j in zip(enumerate(image_fps1), image_fps2):
+        s = sim_scores[idx] if isinstance(sim_scores, list) else sim_scores[idx][idx]
+        print(f"{i} vs {j}, score: {s:.4f}")
+    # search
+    m.add_corpus(corpus_imgs)
+    queries = imgs1
+    res = m.most_similar(queries, topn=3)
+    print('sim search: ', res)
+    for q_id, c in enumerate(res):
+        print('query:', image_fps1[q_id])
+        print("search top 3:")
+        print(f'\t{c}')
+    print('-' * 50 + '\n')
+
+
+def clip_demo():
+    m = ClipSimilarity(model_name_or_path="OFA-Sys/chinese-clip-vit-base-patch16")
+    # english model name: openai/clip-vit-base-patch32
+    print(m)
+    # similarity score between text and image
+    image_fps = [
+        'data/image3.png',  # yellow flower image
+        'data/image1.png',  # tiger image
+    ]
+    texts = ['a yellow flower', '老虎', '一头狮子', '玩具车']
+    imgs = [Image.open(i) for i in image_fps]
+    sim_scores = m.similarity(imgs, texts)
+    print('sim scores: ', sim_scores)
+    for idx, i in enumerate(image_fps):
+        for idy, j in enumerate(texts):
+            s = sim_scores[idx][idy]
+            print(f"{i} vs {j}, score: {s:.4f}")
+    print('-' * 50 + '\n')
+
+
+if __name__ == "__main__":
+    # image_fps1 = ['data/image1.png', 'data/image3.png']
+    # image_fps2 = ['data/image12-like-image1.png', 'data/image10.png']
+    image_fps1 = ['data/shanqiimage/1-1.jpg', 'data/shanqiimage/1-2.jpg']
+    image_fps2 = ['data/shanqiimage/1-3.jpg', 'data/shanqiimage/1-4.jpg']
+    imgs1 = [Image.open(i) for i in image_fps1]
+    imgs2 = [Image.open(i) for i in image_fps2]
+    corpus_fps = glob.glob('data/*.jpg') + glob.glob('data/*.png')
+    corpus_imgs = [Image.open(i) for i in corpus_fps]
+    # 1. image and text similarity
+    clip_demo()
+
+    # 2. image and image similarity score
+    sim_and_search(ClipSimilarity())  # the best result
+    sim_and_search(ImageHashSimilarity(hash_function='phash'))
+    sim_and_search(SiftSimilarity())
