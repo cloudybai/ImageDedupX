@@ -141,15 +141,15 @@ class IncrementalFAISSDetector:
         except Exception as e:
             print(f"ViT模型加载失败: {e}")
 
-    def _init_traditional(self):
-        """初始化传统特征提取器"""
-        try:
-            print("初始化传统CV特征提取器...")
-            self.traditional_enabled = True
-            print("传统CV特征提取器初始化成功")
-        except Exception as e:
-            print(f"传统CV特征初始化失败: {e}")
-            self.traditional_enabled = False
+    # def _init_traditional(self):
+    #     """初始化传统特征提取器"""
+    #     try:
+    #         print("初始化传统CV特征提取器...")
+    #         self.traditional_enabled = True
+    #         print("传统CV特征提取器初始化成功")
+    #     except Exception as e:
+    #         print(f"传统CV特征初始化失败: {e}")
+    #         self.traditional_enabled = False
 
     def extract_resnet_features(self, image_path: str) -> Optional[np.ndarray]:
         """提取ResNet特征"""
