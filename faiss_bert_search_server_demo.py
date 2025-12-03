@@ -51,16 +51,16 @@ def main():
         device=None,
     )
 
-    # Server
-    bert_server(
-        model_name=model_name,
-        index_dir='bert_engine/text_index/',
-        index_name="faiss.index",
-        corpus_dir="bert_engine/corpus/",
-        num_results=5,
-        threshold=None,
-        device=None,
-        port=8001,
+    # # Server
+    # bert_server(
+    #     model_name=model_name,
+    #     index_dir='bert_engine/text_index/',
+    #     index_name="faiss.index",
+    #     corpus_dir="bert_engine/corpus/",
+    #     num_results=5,
+    #     threshold=None,
+    #     device=None,
+    #     port=8001,
     )
 
 
