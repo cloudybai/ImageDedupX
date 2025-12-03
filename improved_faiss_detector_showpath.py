@@ -251,6 +251,9 @@ class IncrementalFAISSDetector:
         if not features:
             return None
         # 拼接所有特征
+
+
+        
         combined_features = np.concatenate(features)
         # L2归一化
         combined_features = combined_features / np.linalg.norm(combined_features)
