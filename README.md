@@ -93,7 +93,7 @@ features_cache.pkl
 
 ```bash
 # Clone the repository
-git clone https://github.com/yourusername/imagedupx.git
+git clone https://github.com/cloudybai/imagedupx.git
 cd imagedupx
 
 # Install dependencies
@@ -636,9 +636,9 @@ If you use ImageDedupX in your research, please cite:
 ```bibtex
 @software{imagedupx2024,
   title = {ImageDedupX: Intelligent Image Deduplication with Incremental Indexing},
-  author = {Your Name},
-  year = {2024},
-  url = {https://github.com/yourusername/imagedupx}
+  author = {Yunpeng Bai},
+  year = {2025},
+  url = {https://github.com/cloudybai/imagedupx}
 }
 ```
 
@@ -646,9 +646,9 @@ If you use ImageDedupX in your research, please cite:
 
 ## 📞 Contact & Support
 
-- **Issues**: [GitHub Issues](https://github.com/yourusername/imagedupx/issues)
-- **Discussions**: [GitHub Discussions](https://github.com/yourusername/imagedupx/discussions)
-- **Email**: your.email@example.com
+- **Issues**: [GitHub Issues](https://github.com/cloudybai/imagedupx/issues)
+- **Discussions**: [GitHub Discussions](https://github.com/cloudybai/imagedupx/discussions)
+- **Email**: cloudbai@nwpu.edu.cn
 
 ---
 
