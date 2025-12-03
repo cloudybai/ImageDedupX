@@ -335,8 +335,8 @@ class IncrementalFAISSDetector:
         existing_data_loaded = False
         if cache_file and os.path.exists(cache_file) and not force_rebuild:
             try:
-                print(f"加载现有缓存文件: {cache_file}")
-                with open(cache_file, 'rb') as f:
+                # print(f"加载现有缓存文件: {cache_file}")
+                # with open(cache_file, 'rb') as f:
                     cache_data = pickle.load(f)
                     self.image_paths = cache_data.get('image_paths', [])
                     self.image_hashes = cache_data.get('image_hashes', {})
@@ -346,16 +346,16 @@ class IncrementalFAISSDetector:
                     existing_data_loaded = True
                     print(f"从缓存加载了 {len(self.image_paths)} 张图片的数据")
                     print(f"其中已标记删除: {len(self.deleted_paths)} 张")
-            except Exception as e:
-                print(f"加载缓存失败: {e}，将重新构建")
-                force_rebuild = True
+            # except Exception as e:
+            #     print(f"加载缓存失败: {e}，将重新构建")
+            #     force_rebuild = True
 
-        if force_rebuild or not existing_data_loaded:
-            print("执行完整索引构建...")
-            self._build_full_index(current_images, cache_file)
-        else:
-            print("执行增量更新（只增不减模式）...")
-            self._update_index_incrementally(current_images, cache_file)
+        # if force_rebuild or not existing_data_loaded:
+        #     print("执行完整索引构建...")
+        #     self._build_full_index(current_images, cache_file)
+        # else:
+        #     print("执行增量更新（只增不减模式）...")
+        #     self._update_index_incrementally(current_images, cache_file)
 
     def _build_full_index(self, current_images: List[str], cache_file: str = None) -> None:
         """构建完整索引"""
