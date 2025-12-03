@@ -1,0 +1,630 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>图像相似度检索系统</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #333;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .header h1 {
+            color: white;
+            font-size: 2.5rem;
+            font-weight: 600;
+            margin-bottom: 10px;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .header p {
+            color: rgba(255,255,255,0.9);
+            font-size: 1.1rem;
+        }
+
+        .main-panel {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+            margin-bottom: 30px;
+        }
+
+        .panel-header {
+            background: linear-gradient(135deg, #4f46e5, #7c3aed);
+            color: white;
+            padding: 20px 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .panel-title {
+            font-size: 1.3rem;
+            font-weight: 600;
+        }
+
+        .panel-actions {
+            display: flex;
+            gap: 10px;
+        }
+
+        .btn {
+            background: rgba(255,255,255,0.2);
+            border: 1px solid rgba(255,255,255,0.3);
+            color: white;
+            padding: 8px 16px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 0.9rem;
+        }
+
+        .btn:hover {
+            background: rgba(255,255,255,0.3);
+            transform: translateY(-1px);
+        }
+
+        .panel-content {
+            padding: 30px;
+        }
+
+        .upload-section {
+            display: flex;
+            gap: 30px;
+            margin-bottom: 30px;
+        }
+
+        .upload-area {
+            flex: 1;
+            border: 3px dashed #d1d5db;
+            border-radius: 16px;
+            padding: 60px 30px;
+            text-align: center;
+            background: #f9fafb;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            position: relative;
+        }
+
+        .upload-area:hover {
+            border-color: #4f46e5;
+            background: #f0f4ff;
+        }
+
+        .upload-area.dragover {
+            border-color: #4f46e5;
+            background: #e0e7ff;
+        }
+
+        .upload-icon {
+            font-size: 3rem;
+            color: #9ca3af;
+            margin-bottom: 15px;
+        }
+
+        .upload-text {
+            font-size: 1.1rem;
+            color: #6b7280;
+            margin-bottom: 10px;
+        }
+
+        .upload-hint {
+            font-size: 0.9rem;
+            color: #9ca3af;
+        }
+
+        .controls-section {
+            flex: 0 0 300px;
+        }
+
+        .control-group {
+            background: #f8fafc;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+
+        .control-label {
+            font-weight: 600;
+            color: #374151;
+            margin-bottom: 10px;
+            display: block;
+        }
+
+        .similarity-control {
+            margin-bottom: 20px;
+        }
+
+        .slider-container {
+            position: relative;
+            margin: 15px 0;
+        }
+
+        .slider {
+            width: 100%;
+            height: 6px;
+            border-radius: 3px;
+            background: #e5e7eb;
+            outline: none;
+            -webkit-appearance: none;
+        }
+
+        .slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: #4f46e5;
+            cursor: pointer;
+        }
+
+        .slider-value {
+            text-align: center;
+            font-weight: 600;
+            color: #4f46e5;
+            margin-top: 5px;
+        }
+
+        .preset-buttons {
+            display: flex;
+            gap: 8px;
+            margin-top: 10px;
+        }
+
+        .preset-btn {
+            flex: 1;
+            background: white;
+            border: 1px solid #d1d5db;
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-size: 0.8rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .preset-btn:hover {
+            background: #f3f4f6;
+        }
+
+        .preset-btn.active {
+            background: #4f46e5;
+            color: white;
+            border-color: #4f46e5;
+        }
+
+        .number-input {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #d1d5db;
+            border-radius: 8px;
+            font-size: 1rem;
+        }
+
+        .search-btn {
+            width: 100%;
+            background: linear-gradient(135deg, #4f46e5, #7c3aed);
+            color: white;
+            border: none;
+            padding: 15px;
+            border-radius: 12px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-top: 20px;
+        }
+
+        .search-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(79, 70, 229, 0.3);
+        }
+
+        .search-btn:disabled {
+            background: #9ca3af;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .results-panel {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+        .results-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 20px;
+            padding: 30px;
+        }
+
+        .result-card {
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+            overflow: hidden;
+            transition: all 0.3s ease;
+            border: 1px solid #e5e7eb;
+        }
+
+        .result-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+        }
+
+        .result-image {
+            width: 100%;
+            height: 200px;
+            background: #f3f4f6;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #9ca3af;
+            font-size: 0.9rem;
+        }
+
+        .result-info {
+            padding: 15px;
+        }
+
+        .result-filename {
+            font-weight: 600;
+            color: #374151;
+            margin-bottom: 8px;
+            font-size: 0.9rem;
+        }
+
+        .similarity-score {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+
+        .score-bar {
+            flex: 1;
+            height: 6px;
+            background: #e5e7eb;
+            border-radius: 3px;
+            overflow: hidden;
+        }
+
+        .score-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #10b981, #3b82f6, #8b5cf6);
+            transition: width 0.5s ease;
+        }
+
+        .score-text {
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: #4f46e5;
+        }
+
+        .result-meta {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.8rem;
+            color: #6b7280;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 60px;
+        }
+
+        .loading-spinner {
+            width: 50px;
+            height: 50px;
+            border: 4px solid #e5e7eb;
+            border-top: 4px solid #4f46e5;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 60px;
+            color: #6b7280;
+        }
+
+        .empty-icon {
+            font-size: 4rem;
+            margin-bottom: 20px;
+            opacity: 0.5;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 4px;
+            background: #e5e7eb;
+            border-radius: 2px;
+            overflow: hidden;
+            margin: 20px 0;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #4f46e5, #7c3aed);
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+
+        .status-message {
+            padding: 15px;
+            border-radius: 8px;
+            margin: 20px 0;
+            text-align: center;
+        }
+
+        .status-success {
+            background: #d1fae5;
+            color: #065f46;
+            border: 1px solid #a7f3d0;
+        }
+
+        .status-error {
+            background: #fee2e2;
+            color: #991b1b;
+            border: 1px solid #fecaca;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🔍 图像相似度检索系统</h1>
+            <p>智能识别和检索相似图片，支持批量去重和相似度分析</p>
+        </div>
+
+        <div class="main-panel">
+            <div class="panel-header">
+                <div class="panel-title">图片检索</div>
+                <div class="panel-actions">
+                    <button class="btn" onclick="viewGallery()">图片库管理</button>
+                    <button class="btn" onclick="showHelp()">使用帮助</button>
+                </div>
+            </div>
+            <div class="panel-content">
+                <div class="upload-section">
+                    <div class="upload-area" id="uploadArea" onclick="selectFile()">
+                        <div class="upload-icon"> </div>
+                        <div class="upload-text">点击上传图片或拖拽到此处</div>
+                        <div class="upload-hint">支持 JPG、PNG、GIF 格式，最大 10MB</div>
+                        <input type="file" id="fileInput" style="display: none" accept="image/*" multiple>
+                    </div>
+
+                    <div class="controls-section">
+                        <div class="control-group">
+                            <label class="control-label">相似度阈值</label>
+                            <div class="similarity-control">
+                                <div class="slider-container">
+                                    <input type="range" class="slider" id="similaritySlider"
+                                           min="0.1" max="1" step="0.1" value="0.5"
+                                           oninput="updateSimilarity(this.value)">
+                                    <div class="slider-value" id="similarityValue">50%</div>
+                                </div>
+                                <div class="preset-buttons">
+                                    <button class="preset-btn" onclick="setPreset(0.3, this)">宽松</button>
+                                    <button class="preset-btn active" onclick="setPreset(0.5, this)">中等</button>
+                                    <button class="preset-btn" onclick="setPreset(0.7, this)">严格</button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="control-group">
+                            <label class="control-label">返回数量</label>
+                            <input type="number" class="number-input" value="10" min="1" max="100">
+                        </div>
+
+                        <button class="search-btn" id="searchBtn" onclick="startSearch()">
+                            开始检索
+                        </button>
+                    </div>
+                </div>
+
+                <div class="progress-bar" id="progressBar" style="display: none;">
+                    <div class="progress-fill" id="progressFill"></div>
+                </div>
+
+                <div class="status-message" id="statusMessage" style="display: none;"></div>
+            </div>
+        </div>
+
+        <div class="results-panel">
+            <div class="panel-header">
+                <div class="panel-title">检索结果</div>
+                <div class="panel-actions">
+<!--                    <button class="btn" onclick="exportResults()">导出结果</button>-->
+                </div>
+            </div>
+
+            <div id="resultsContainer">
+                <div class="empty-state">
+                    <div class="empty-icon"> </div>
+                    <h3>暂无检索结果</h3>
+                    <p>上传图片开始检索相似的图片</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 上传区域拖拽功能
+        const uploadArea = document.getElementById('uploadArea');
+        const fileInput = document.getElementById('fileInput');
+
+        uploadArea.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            uploadArea.classList.add('dragover');
+        });
+
+        uploadArea.addEventListener('dragleave', () => {
+            uploadArea.classList.remove('dragover');
+        });
+
+        uploadArea.addEventListener('drop', (e) => {
+            e.preventDefault();
+            uploadArea.classList.remove('dragover');
+            const files = e.dataTransfer.files;
+            handleFiles(files);
+        });
+
+        function selectFile() {
+            fileInput.click();
+        }
+
+        fileInput.addEventListener('change', (e) => {
+            handleFiles(e.target.files);
+        });
+
+        function handleFiles(files) {
+            if (files.length > 0) {
+                uploadArea.innerHTML = `
+                    <div class="upload-icon"></div>
+                    <div class="upload-text">已选择 ${files.length} 个文件</div>
+                    <div class="upload-hint">点击重新选择</div>
+                `;
+            }
+        }
+
+        // 相似度控制
+        function updateSimilarity(value) {
+            document.getElementById('similarityValue').textContent = Math.round(value * 100) + '%';
+            // 移除所有预设按钮的active状态
+            document.querySelectorAll('.preset-btn').forEach(btn => btn.classList.remove('active'));
+        }
+
+        function setPreset(value, button) {
+            document.getElementById('similaritySlider').value = value;
+            updateSimilarity(value);
+            document.querySelectorAll('.preset-btn').forEach(btn => btn.classList.remove('active'));
+            button.classList.add('active');
+        }
+
+        // 开始检索
+        function startSearch() {
+            const btn = document.getElementById('searchBtn');
+            const progressBar = document.getElementById('progressBar');
+            const progressFill = document.getElementById('progressFill');
+            const statusMessage = document.getElementById('statusMessage');
+            const resultsContainer = document.getElementById('resultsContainer');
+
+            btn.disabled = true;
+            btn.textContent = '检索中...';
+            progressBar.style.display = 'block';
+            statusMessage.style.display = 'none';
+
+            // 模拟检索过程
+            let progress = 0;
+            const interval = setInterval(() => {
+                progress += Math.random() * 15;
+                if (progress >= 100) {
+                    progress = 100;
+                    clearInterval(interval);
+
+                    // 显示结果
+                    setTimeout(() => {
+                        showResults();
+                        btn.disabled = false;
+                        btn.textContent = '开始检索';
+                        progressBar.style.display = 'none';
+
+                        statusMessage.className = 'status-message status-success';
+                        statusMessage.textContent = '检索完成！找到 6 张相似图片';
+                        statusMessage.style.display = 'block';
+                    }, 500);
+                }
+                progressFill.style.width = progress + '%';
+            }, 200);
+        }
+
+        function showResults() {
+            const resultsContainer = document.getElementById('resultsContainer');
+            resultsContainer.innerHTML = `
+                <div class="results-grid">
+                    ${generateResultCards()}
+                </div>
+            `;
+        }
+
+        function generateResultCards() {
+            const results = [
+                { filename: 'example_001.jpg', similarity: 0.95, size: '2.1 MB' },
+                { filename: 'similar_image.png', similarity: 0.87, size: '1.8 MB' },
+                { filename: 'photo_duplicate.jpg', similarity: 0.82, size: '3.2 MB' },
+                { filename: 'variant_pic.jpg', similarity: 0.76, size: '1.5 MB' },
+                { filename: 'related_img.png', similarity: 0.69, size: '2.8 MB' },
+                { filename: 'close_match.jpg', similarity: 0.61, size: '1.9 MB' }
+            ];
+
+            return results.map(result => `
+                <div class="result-card">
+                    <div class="result-image">图片预览区域</div>
+                    <div class="result-info">
+                        <div class="result-filename">${result.filename}</div>
+                        <div class="similarity-score">
+                            <div class="score-bar">
+                                <div class="score-fill" style="width: ${result.similarity * 100}%"></div>
+                            </div>
+                            <div class="score-text">${Math.round(result.similarity * 100)}%</div>
+                        </div>
+                        <div class="result-meta">
+                            <span>${result.size}</span>
+                            <span> 今天</span>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // 其他功能
+        function viewGallery() {
+            alert('打开图片库管理功能');
+        }
+
+        function showHelp() {
+            alert('显示使用帮助文档');
+        }
+
+        function exportResults() {
+            alert('导出检索结果');
+        }
+
+        function batchDelete() {
+            if (confirm('确定要删除选中的图片吗？')) {
+                alert('执行批量删除操作');
+            }
+        }
+    </script>
+</body>
+</html>

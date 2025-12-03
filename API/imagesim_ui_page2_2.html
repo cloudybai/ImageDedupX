@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<title>图像检索系统</title>
+<style>
+    body { font-family: Arial, sans-serif; margin: 0; background: #f5f5f5; }
+    header { background: #fff; padding: 16px; border-bottom: 1px solid #ddd; font-size: 20px; font-weight: bold; text-align: center; }
+    .toolbar { background: #fff; padding: 10px 16px; display: flex; flex-wrap: wrap; align-items: center; gap: 8px; border-bottom: 1px solid #ddd; }
+    .toolbar button, .toolbar input[type="date"], .toolbar input[type="file"] { padding: 6px 12px; border: 1px solid #ccc; border-radius: 4px; background: #fff; cursor: pointer; }
+    .toolbar button:hover { background: #f0f0f0; }
+    table { width: 100%; border-collapse: collapse; background: #fff; }
+    th, td { padding: 8px; text-align: left; border-bottom: 1px solid #ddd; font-size: 14px; }
+    th { background: #f9f9f9; }
+    tr:hover { background: #f5faff; }
+    .thumbnail { width: 48px; height: 48px; background: #eee center/cover; border-radius: 4px; }
+    .status { padding: 2px 6px; border-radius: 4px; color: #fff; font-size: 12px; }
+    .status.success { background: #4caf50; }
+    .status.warning { background: #ffc107; color: #000; }
+    .status.error { background: #f44336; }
+    .status.info { background: #2196f3; }
+    .progress-bar { height: 8px; background: #ddd; border-radius: 4px; overflow: hidden; width: 80px; }
+    .progress-bar div { height: 100%; }
+    .actions button { border: none; background: none; cursor: pointer; font-size: 16px; margin: 0 2px; }
+    .pagination { background: #fff; padding: 10px; text-align: center; border-top: 1px solid #ddd; }
+    .pagination button { margin: 0 2px; padding: 4px 8px; border: 1px solid #ccc; background: #fff; cursor: pointer; border-radius: 4px; }
+    /* 预览弹窗 */
+    #previewModal, #compareModal {
+        display: none; position: fixed; top:0; left:0; width:100%; height:100%;
+        background: rgba(0,0,0,0.7); justify-content:center; align-items:center;
+        flex-direction: column; z-index: 999;
+    }
+    #previewModal img { max-width:80%; max-height:80%; border:5px solid #fff; border-radius:8px; }
+    #compareContent { display: flex; gap: 20px; align-items: flex-start; }
+    .compare-img {
+        position: relative; max-width: 45%; max-height: 70vh;
+    }
+    .compare-img img {
+        max-width: 100%; max-height: 100%; border: 3px solid #fff; border-radius: 6px;
+    }
+    .highlight {
+        position: absolute; border: 2px dashed red; background: rgba(255,0,0,0.2);
+    }
+    .compare-header {
+        color: white; font-size: 18px; margin-bottom: 10px;
+    }
+</style>
+</head>
+<body>
+
+<header>图像检索系统</header>
+
+<div class="toolbar">
+    <input type="file" id="uploadInput" accept="image/*" multiple>
+    <button id="deleteSelected">删除选中</button>
+    <button>导出</button>
+    <input type="date">
+    <input type="date">
+    <button>查询</button>
+</div>
+
+<table id="imageTable">
+    <thead>
+        <tr>
+            <th><input type="checkbox" id="selectAll"></th>
+            <th>缩略图</th>
+            <th>文件名</th>
+            <th>大小</th>
+<!--            <th>格式</th>-->
+            <th>上传时间</th>
+<!--            <th>相似度</th>-->
+            <th>状态</th>
+            <th>操作</th>
+        </tr>
+    </thead>
+    <tbody>
+        <!-- 动态添加行 -->
+    </tbody>
+</table>
+
+<div class="pagination">
+    <button>«</button>
+    <button>1</button>
+    <button>2</button>
+    <button>3</button>
+    <button>»</button>
+</div>
+
+<!-- 图片预览弹窗 -->
+<div id="previewModal">
+    <img src="" alt="预览图">
+</div>
+
+<!-- 图片对比弹窗 -->
+<div id="compareModal">
+    <div class="compare-header">相似度: <span id="compareScore"></span>%</div>
+    <div id="compareContent">
+        <div class="compare-img">
+            <img id="compareImg1" src="">
+            <div class="highlight" style="top:20px; left:30px; width:40px; height:40px;"></div>
+        </div>
+        <div class="compare-img">
+            <img id="compareImg2" src="">
+            <div class="highlight" style="top:50px; left:50px; width:30px; height:30px;"></div>
+        </div>
+    </div>
+</div>
+
+<script>
+const tableBody = document.querySelector("#imageTable tbody");
+const uploadInput = document.getElementById("uploadInput");
+const selectAll = document.getElementById("selectAll");
+const deleteSelected = document.getElementById("deleteSelected");
+const previewModal = document.getElementById("previewModal");
+const previewImg = previewModal.querySelector("img");
+const compareModal = document.getElementById("compareModal");
+const compareImg1 = document.getElementById("compareImg1");
+const compareImg2 = document.getElementById("compareImg2");
+const compareScore = document.getElementById("compareScore");
+
+// 选择文件上传
+uploadInput.addEventListener("change", (e) => {
+    const files = e.target.files;
+    for (let file of files) {
+        const reader = new FileReader();
+        reader.onload = function(evt) {
+            const now = new Date();
+            const timeStr = now.toISOString().slice(0,16).replace("T"," ");
+            const similarity = Math.floor(Math.random()*101);
+            const statusClass = similarity > 80 ? "success" : similarity > 50 ? "warning" : "info";
+            const statusText = similarity > 80 ? "已完成" : similarity > 50 ? "估算" : "处理中";
+            const row = document.createElement("tr");
+            row.innerHTML = `
+                <td><input type="checkbox"></td>
+                <td><div class="thumbnail" style="background-image:url('${evt.target.result}')"></div></td>
+                <td>${file.name}</td>
+                <td>${(file.size/1024/1024).toFixed(2)} MB</td>
+                <td>${file.name.split('.').pop().toUpperCase()}</td>
+                <td>${timeStr}</td>
+                <td><div class="progress-bar"><div style="width:${similarity}%; background:${statusClass==='success'?'#4caf50':statusClass==='warning'?'#ffc107':'#2196f3'}"></div></div></td>
+                <td><span class="status ${statusClass}">${statusText}</span></td>
+                <td class="actions">
+                    <button class="previewBtn">预览</button>
+<!--                    <button class="compareBtn">对比</button>-->
+<!--                    <button class="deleteBtn">删除️</button>-->
+                </td>
+            `;
+            tableBody.appendChild(row);
+        };
+        reader.readAsDataURL(file);
+    }
+});
+
+// 预览图片
+tableBody.addEventListener("click", (e) => {
+    if (e.target.classList.contains("previewBtn")) {
+        const imgUrl = e.target.closest("tr").querySelector(".thumbnail").style.backgroundImage.slice(5,-2);
+        previewImg.src = imgUrl;
+        previewModal.style.display = "flex";
+    }
+});
+
+// 对比图片
+tableBody.addEventListener("click", (e) => {
+    if (e.target.classList.contains("compareBtn")) {
+        const imgUrl1 = e.target.closest("tr").querySelector(".thumbnail").style.backgroundImage.slice(5,-2);
+        // 模拟选择另一张图片进行对比
+        const otherRow = tableBody.querySelector("tr:not(:has(.compareBtn:active)) .thumbnail");
+        const imgUrl2 = otherRow ? otherRow.style.backgroundImage.slice(5,-2) : imgUrl1;
+        const score = Math.floor(Math.random()*21) + 80; // 模拟80-100之间
+        compareImg1.src = imgUrl1;
+        compareImg2.src = imgUrl2;
+        compareScore.textContent = score;
+        compareModal.style.display = "flex";
+    }
+});
+
+// 删除单行
+tableBody.addEventListener("click", (e) => {
+    if (e.target.classList.contains("deleteBtn")) {
+        if (confirm("确定删除该文件吗？")) {
+            e.target.closest("tr").remove();
+        }
+    }
+});
+
+// 批量全选
+selectAll.addEventListener("change", (e) => {
+    tableBody.querySelectorAll("input[type='checkbox']").forEach(cb => cb.checked = e.target.checked);
+});
+
+// 批量删除
+deleteSelected.addEventListener("click", () => {
+    const checkedRows = tableBody.querySelectorAll("input[type='checkbox']:checked");
+    if (checkedRows.length === 0) {
+        alert("请先选择文件");
+        return;
+    }
+    if (confirm(`确定删除选中的 ${checkedRows.length} 个文件吗？`)) {
+        checkedRows.forEach(cb => cb.closest("tr").remove());
+    }
+});
+
+// 关闭弹窗
+previewModal.addEventListener("click", () => previewModal.style.display = "none");
+compareModal.addEventListener("click", () => compareModal.style.display = "none");
+</script>
+
+</body>
+</html>
