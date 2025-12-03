@@ -115,17 +115,17 @@ class ImprovedImageSimilarityDetector:
             归一化的特征向量
         """
         try:
-            # 直接使用similarities库计算特征
-            # 我们通过计算与自身的相似度来获取特征表示的效果
-            # 这里采用一个技巧：先计算与参考图片的相似度来获得特征
+            # # 直接使用similarities库计算特征
+            # # 我们通过计算与自身的相似度来获取特征表示的效果
+            # # 这里采用一个技巧：先计算与参考图片的相似度来获得特征
 
-            # 由于similarities库没有直接的encode方法，我们改用其他方式
-            # 使用PIL加载图片并转换
-            image = Image.open(image_path).convert('RGB')
+            # # 由于similarities库没有直接的encode方法，我们改用其他方式
+            # # 使用PIL加载图片并转换
+            # image = Image.open(image_path).convert('RGB')
 
-            # 将图片转换为模型可接受的格式
-            # 这里我们采用直接使用similarity方法的方式
-            # 返回图片路径，后续直接使用similarity方法
+            # # 将图片转换为模型可接受的格式
+            # # 这里我们采用直接使用similarity方法的方式
+            # # 返回图片路径，后续直接使用similarity方法
 
             return image_path  # 返回路径，在后续计算中直接使用
 
