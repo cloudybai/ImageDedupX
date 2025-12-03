@@ -103,6 +103,9 @@ class ImageSimilarityService:
     def _register_routes(self):
         """注册API路由"""
 
+
+
+        
         @self.app.route('/')
         def serve_ui():
             """提供Web UI界面"""
