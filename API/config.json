@@ -1,0 +1,12 @@
+{
+  "host": "0.0.0.0",
+  "port": 8080,
+  "debug": false,
+  "max_file_size": 16777216,
+  "upload_folder": "./uploads",
+  "index_folder": "./indices",
+  "cache_folder": "./cache",
+  "allowed_extensions": ["jpg", "jpeg", "png", "bmp", "gif", "tiff", "webp"],
+  "enable_cors": true,
+  "log_level": "INFO"
+}

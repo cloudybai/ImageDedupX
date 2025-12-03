@@ -1,0 +1,1041 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>智能方案审核系统</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Microsoft YaHei', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #333;
+        }
+
+        /* 登录界面样式 */
+        .login-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+
+        .login-box {
+            background: rgba(255, 255, 255, 0.95);
+            padding: 40px;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            backdrop-filter: blur(10px);
+            width: 400px;
+            text-align: center;
+            transform: translateY(-20px);
+            animation: slideUp 0.8s ease-out;
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(-20px);
+            }
+        }
+
+        .system-title {
+            color: #4a5568;
+            font-size: 28px;
+            font-weight: bold;
+            margin-bottom: 30px;
+            position: relative;
+        }
+
+        .system-title::after {
+            content: '';
+            position: absolute;
+            bottom: -10px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 60px;
+            height: 3px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            border-radius: 2px;
+        }
+
+        .input-group {
+            margin-bottom: 20px;
+            text-align: left;
+        }
+
+        .input-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: #4a5568;
+            font-weight: 500;
+        }
+
+        .input-group input {
+            width: 100%;
+            padding: 12px 16px;
+            border: 2px solid #e2e8f0;
+            border-radius: 10px;
+            font-size: 14px;
+            transition: all 0.3s ease;
+            background: rgba(255, 255, 255, 0.8);
+        }
+
+        .input-group input:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+            transform: translateY(-2px);
+        }
+
+        .login-btn {
+            width: 100%;
+            padding: 14px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-top: 10px;
+        }
+
+        .login-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(102, 126, 234, 0.3);
+        }
+
+        /* 主系统界面样式 */
+        .main-system {
+            display: none;
+            min-height: 100vh;
+            background: #f7fafc;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            padding: 15px 30px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .header-title {
+            font-size: 24px;
+            font-weight: bold;
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .logout-btn {
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .logout-btn:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
+
+        .main-content {
+            display: flex;
+            min-height: calc(100vh - 70px);
+        }
+
+        .sidebar {
+            width: 280px;
+            background: white;
+            box-shadow: 2px 0 10px rgba(0, 0, 0, 0.1);
+            padding: 0;
+        }
+
+        .nav-item {
+            display: block;
+            padding: 20px 30px;
+            color: #4a5568;
+            text-decoration: none;
+            border-bottom: 1px solid #e2e8f0;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            position: relative;
+            font-weight: 500;
+        }
+
+        .nav-item:hover {
+            background: #f7fafc;
+            color: #667eea;
+            transform: translateX(5px);
+        }
+
+        .nav-item.active {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            transform: translateX(5px);
+        }
+
+        .nav-item.active::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 0;
+            height: 100%;
+            width: 4px;
+            background: #4299e1;
+        }
+
+        .content-area {
+            flex: 1;
+            padding: 30px;
+            background: #f7fafc;
+        }
+
+        .content-panel {
+            display: none;
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+        }
+
+        .content-panel.active {
+            display: block;
+            animation: fadeInUp 0.5s ease-out;
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .panel-title {
+            font-size: 24px;
+            font-weight: bold;
+            color: #2d3748;
+            margin-bottom: 25px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #e2e8f0;
+        }
+
+        /* 新建方案审核样式 */
+        .upload-section {
+            background: #f8f9ff;
+            border: 2px dashed #667eea;
+            border-radius: 15px;
+            padding: 40px;
+            text-align: center;
+            margin-bottom: 30px;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .upload-section:hover {
+            border-color: #4c51bf;
+            background: #f0f4ff;
+        }
+
+        .upload-icon {
+            font-size: 48px;
+            color: #667eea;
+            margin-bottom: 15px;
+        }
+
+        .file-input {
+            display: none;
+        }
+
+        .scheme-types {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .scheme-type {
+            background: white;
+            border: 2px solid #e2e8f0;
+            border-radius: 12px;
+            padding: 20px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .scheme-type:hover {
+            border-color: #667eea;
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(102, 126, 234, 0.15);
+        }
+
+        .scheme-type.selected {
+            border-color: #667eea;
+            background: #f8f9ff;
+        }
+
+        /* 审核结果管理样式 */
+        .result-tabs {
+            display: flex;
+            margin-bottom: 30px;
+            background: #f7fafc;
+            border-radius: 12px;
+            padding: 5px;
+        }
+
+        .result-tab {
+            flex: 1;
+            padding: 12px 20px;
+            text-align: center;
+            cursor: pointer;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+            font-weight: 500;
+        }
+
+        .result-tab:hover {
+            background: rgba(102, 126, 234, 0.1);
+        }
+
+        .result-tab.active {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+        }
+
+        .result-content {
+            background: #f8f9ff;
+            border-radius: 12px;
+            padding: 25px;
+            margin-bottom: 20px;
+        }
+
+        .download-area {
+            text-align: center;
+            padding: 30px;
+            background: #f0f8f0;
+            border-radius: 12px;
+            border: 2px solid #48bb78;
+        }
+
+        .download-btn {
+            background: linear-gradient(135deg, #48bb78, #38a169);
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+            margin: 0 10px;
+            transition: all 0.3s ease;
+        }
+
+        .download-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(72, 187, 120, 0.3);
+        }
+
+        /* 通用按钮样式 */
+        .btn {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.3s ease;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.3);
+        }
+
+        /* 表格样式 */
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+            background: white;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+        }
+
+        .data-table th,
+        .data-table td {
+            padding: 15px;
+            text-align: left;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        .data-table th {
+            background: #f7fafc;
+            font-weight: bold;
+            color: #4a5568;
+        }
+
+        .data-table tr:hover {
+            background: #f8f9ff;
+        }
+
+        /* 表单样式 */
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: #4a5568;
+            font-weight: 500;
+        }
+
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: all 0.3s ease;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .status-badge {
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: bold;
+        }
+
+        .status-success {
+            background: #c6f6d5;
+            color: #22543d;
+        }
+
+        .status-warning {
+            background: #fef5e7;
+            color: #c05621;
+        }
+
+        .status-error {
+            background: #fed7d7;
+            color: #c53030;
+        }
+    </style>
+</head>
+<body>
+    <!-- 登录界面 -->
+    <div id="loginPage" class="login-container">
+        <div class="login-box">
+            <h1 class="system-title">智能方案审核系统</h1>
+            <div class="input-group">
+                <label for="username">用户名</label>
+                <input type="text" id="username" placeholder="请输入用户名">
+            </div>
+            <div class="input-group">
+                <label for="password">密码</label>
+                <input type="password" id="password" placeholder="请输入密码">
+            </div>
+            <button class="login-btn" onclick="login()">登 录</button>
+        </div>
+    </div>
+
+    <!-- 主系统界面 -->
+    <div id="mainSystem" class="main-system">
+        <div class="header">
+            <div class="header-title">智能方案审核系统</div>
+            <div class="user-info">
+                <span>欢迎您，<span id="currentUser">管理员</span></span>
+                <button class="logout-btn" onclick="logout()">退出登录</button>
+            </div>
+        </div>
+
+        <div class="main-content">
+            <div class="sidebar">
+                <a class="nav-item active" onclick="switchPanel('newAudit')">新建方案审核</a>
+                <a class="nav-item" onclick="switchPanel('resultManagement')">审核结果管理</a>
+                <a class="nav-item" onclick="switchPanel('ruleConfig')">审查规则配置</a>
+                <a class="nav-item" onclick="switchPanel('systemSettings')">系统设置</a>
+            </div>
+
+            <div class="content-area">
+                <!-- 新建方案审核 -->
+                <div id="newAudit" class="content-panel active">
+                    <h2 class="panel-title">新建方案审核</h2>
+
+                    <div class="upload-section" onclick="document.getElementById('fileInput').click()">
+                        <div class="upload-icon">📄</div>
+                        <h3>点击上传方案文件</h3>
+                        <p>支持 PDF、DOC、DOCX 格式，文件大小不超过 50MB</p>
+                        <input type="file" id="fileInput" class="file-input" accept=".pdf,.doc,.docx" onchange="handleFileUpload(this)">
+                        <div id="fileName" style="margin-top: 15px; font-weight: bold; color: #667eea;"></div>
+                    </div>
+
+                    <h3 style="margin-bottom: 15px; color: #4a5568;">选择方案类型</h3>
+                    <div class="scheme-types">
+                        <div class="scheme-type" onclick="selectSchemeType(this, 'general')">
+                            <h4>通用类</h4>
+                            <p>适用于一般性方案审核</p>
+                        </div>
+                        <div class="scheme-type" onclick="selectSchemeType(this, 'procurement')">
+                            <h4>采购类</h4>
+                            <p>适用于采购相关方案</p>
+                        </div>
+                        <div class="scheme-type" onclick="selectSchemeType(this, 'development')">
+                            <h4>技术开发类</h4>
+                            <p>适用于技术研发方案</p>
+                        </div>
+                        <div class="scheme-type" onclick="selectSchemeType(this, 'construction')">
+                            <h4>建筑工程类</h4>
+                            <p>适用于工程建设方案</p>
+                        </div>
+                    </div>
+
+                    <div style="text-align: center; margin-top: 30px;">
+                        <button class="btn" onclick="startAudit()">开始审核</button>
+                    </div>
+                </div>
+
+                <!-- 审核结果管理 -->
+                <div id="resultManagement" class="content-panel">
+                    <h2 class="panel-title">审核结果管理</h2>
+
+                    <div class="result-tabs">
+                        <div class="result-tab active" onclick="switchResultTab(this, 'initial')">定制化初审</div>
+                        <div class="result-tab" onclick="switchResultTab(this, 'review')">智能复审</div>
+                        <div class="result-tab" onclick="switchResultTab(this, 'comprehensive')">综合审核结果</div>
+                        <div class="result-tab" onclick="switchResultTab(this, 'download')">结果下载</div>
+                    </div>
+
+                    <div id="initialResult" class="result-content">
+                        <h4>定制化初审结果</h4>
+                        <p style="margin: 15px 0;">依据企业知识库标准，检查方案是否符合内部管理要求</p>
+
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>检查项目</th>
+                                    <th>检查结果</th>
+                                    <th>风险等级</th>
+                                    <th>建议</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>格式规范性</td>
+                                    <td><span class="status-badge status-success">通过</span></td>
+                                    <td>低</td>
+                                    <td>符合企业标准格式</td>
+                                </tr>
+                                <tr>
+                                    <td>内容完整性</td>
+                                    <td><span class="status-badge status-warning">待完善</span></td>
+                                    <td>中</td>
+                                    <td>缺少风险评估章节</td>
+                                </tr>
+                                <tr>
+                                    <td>审批流程</td>
+                                    <td><span class="status-badge status-success">通过</span></td>
+                                    <td>低</td>
+                                    <td>审批流程符合规定</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div id="reviewResult" class="result-content" style="display: none;">
+                        <h4>智能复审结果</h4>
+                        <p style="margin: 15px 0;">依据现行法律法规，检查方案是否规范、有效、合法</p>
+
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>法规条款</th>
+                                    <th>符合性</th>
+                                    <th>风险等级</th>
+                                    <th>法规依据</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>合同法相关条款</td>
+                                    <td><span class="status-badge status-success">符合</span></td>
+                                    <td>低</td>
+                                    <td>《合同法》第39条</td>
+                                </tr>
+                                <tr>
+                                    <td>采购法相关规定</td>
+                                    <td><span class="status-badge status-error">不符合</span></td>
+                                    <td>高</td>
+                                    <td>《政府采购法》第22条</td>
+                                </tr>
+                                <tr>
+                                    <td>环保法规要求</td>
+                                    <td><span class="status-badge status-success">符合</span></td>
+                                    <td>低</td>
+                                    <td>《环境保护法》第16条</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div id="comprehensiveResult" class="result-content" style="display: none;">
+                        <h4>综合审核结果</h4>
+                        <p style="margin: 15px 0;">综合定制化初审和智能复审结果，输出风险矩阵、法律索引和检查清单</p>
+
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-top: 20px;">
+                            <div style="background: #fff5f5; padding: 20px; border-radius: 12px; border-left: 4px solid #fc8181;">
+                                <h5>风险矩阵</h5>
+                                <ul style="margin-top: 10px;">
+                                    <li>高风险项：1项</li>
+                                    <li>中风险项：2项</li>
+                                    <li>低风险项：5项</li>
+                                </ul>
+                            </div>
+                            <div style="background: #f0fff4; padding: 20px; border-radius: 12px; border-left: 4px solid #68d391;">
+                                <h5>法律索引</h5>
+                                <ul style="margin-top: 10px;">
+                                    <li>《合同法》相关条款：3项</li>
+                                    <li>《政府采购法》：1项</li>
+                                    <li>《环境保护法》：1项</li>
+                                </ul>
+                            </div>
+                        </div>
+
+                        <div style="background: #f7fafc; padding: 20px; border-radius: 12px; margin-top: 20px;">
+                            <h5>检查清单</h5>
+                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 15px;">
+                                <div>✅ 格式规范性检查</div>
+                                <div>⚠️ 内容完整性检查</div>
+                                <div>✅ 审批流程检查</div>
+                                <div>❌ 采购法规符合性</div>
+                                <div>✅ 合同条款检查</div>
+                                <div>✅ 环保要求检查</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div id="downloadResult" class="result-content" style="display: none;">
+                        <div class="download-area">
+                            <h4>结果下载</h4>
+                            <p style="margin: 15px 0;">可下载初审与复审结果为Word版本，在本地查看</p>
+
+                            <div style="margin-top: 25px;">
+                                <button class="download-btn" onclick="downloadResult('initial')">下载初审结果</button>
+                                <button class="download-btn" onclick="downloadResult('review')">下载复审结果</button>
+                                <button class="download-btn" onclick="downloadResult('comprehensive')">下载综合结果</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 审查规则配置 -->
+                <div id="ruleConfig" class="content-panel">
+                    <h2 class="panel-title">审查规则配置</h2>
+
+                    <div style="background: #f8f9ff; padding: 25px; border-radius: 12px; margin-bottom: 30px;">
+                        <h4>上传审核标准文件</h4>
+                        <p style="margin: 15px 0; color: #666;">将审核标准文件上传至知识库，系统将自动解析并更新审核规则</p>
+
+                        <div class="upload-section" style="margin-top: 20px;" onclick="document.getElementById('ruleFileInput').click()">
+                            <div class="upload-icon">📋</div>
+                            <h4>点击上传标准文件</h4>
+                            <p>支持 PDF、DOC、DOCX、TXT 格式</p>
+                            <input type="file" id="ruleFileInput" class="file-input" accept=".pdf,.doc,.docx,.txt" onchange="handleRuleFileUpload(this)">
+                            <div id="ruleFileName" style="margin-top: 15px; font-weight: bold; color: #667eea;"></div>
+                        </div>
+
+                        <div style="text-align: center; margin-top: 20px;">
+                            <button class="btn" onclick="uploadRuleFile()">上传并解析</button>
+                        </div>
+                    </div>
+
+                    <h4>当前规则配置</h4>
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>规则类型</th>
+                                <th>规则名称</th>
+                                <th>更新时间</th>
+                                <th>状态</th>
+                                <th>操作</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>通用规则</td>
+                                <td>企业标准格式规范</td>
+                                <td>2024-03-15</td>
+                                <td><span class="status-badge status-success">生效中</span></td>
+                                <td><button class="btn" style="padding: 6px 12px; font-size: 12px;">编辑</button></td>
+                            </tr>
+                            <tr>
+                                <td>采购规则</td>
+                                <td>政府采购法规检查</td>
+                                <td>2024-03-10</td>
+                                <td><span class="status-badge status-success">生效中</span></td>
+                                <td><button class="btn" style="padding: 6px 12px; font-size: 12px;">编辑</button></td>
+                            </tr>
+                            <tr>
+                                <td>技术规则</td>
+                                <td>技术开发标准</td>
+                                <td>2024-03-08</td>
+                                <td><span class="status-badge status-warning">待审核</span></td>
+                                <td><button class="btn" style="padding: 6px 12px; font-size: 12px;">编辑</button></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- 系统设置 -->
+                <div id="systemSettings" class="content-panel">
+                    <h2 class="panel-title">系统设置</h2>
+
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 30px;">
+                        <div>
+                            <h4 style="margin-bottom: 20px; color: #4a5568;">用户权限管理</h4>
+
+                            <div class="form-group">
+                                <label>添加新用户</label>
+                                <input type="text" placeholder="用户名" style="margin-bottom: 10px;">
+                                <input type="email" placeholder="邮箱地址" style="margin-bottom: 10px;">
+                                <select>
+                                    <option>管理员</option>
+                                    <option>普通用户</option>
+                                    <option>审核员</option>
+                                </select>
+                            </div>
+
+                            <button class="btn">添加用户</button>
+                        </div>
+
+                        <div>
+                            <h4 style="margin-bottom: 20px; color: #4a5568;">系统配置</h4>
+
+                            <div class="form-group">
+                                <label>审核超时时间（分钟）</label>
+                                <input type="number" value="30" min="5" max="180">
+                            </div>
+
+                            <div class="form-group">
+                                <label>最大文件大小（MB）</label>
+                                <input type="number" value="50" min="1" max="100">
+                            </div>
+
+                            <div class="form-group">
+                                <label>邮件通知</label>
+                                <select>
+                                    <option>开启</option>
+                                    <option>关闭</option>
+                                </select>
+                            </div>
+
+                            <button class="btn">保存设置</button>
+                        </div>
+                    </div>
+
+                    <div style="margin-top: 40px;">
+                        <h4 style="margin-bottom: 20px; color: #4a5568;">当前用户列表</h4>
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>用户名</th>
+                                    <th>邮箱</th>
+                                    <th>角色</th>
+                                    <th>状态</th>
+                                    <th>最后登录</th>
+                                    <th>操作</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>admin</td>
+                                    <td>admin@company.com</td>
+                                    <td>管理员</td>
+                                    <td><span class="status-badge status-success">活跃</span></td>
+                                    <td>2024-03-15 09:30</td>
+                                    <td>
+                                        <button class="btn" style="padding: 4px 8px; font-size: 12px; margin-right: 5px;">编辑</button>
+                                        <button class="btn" style="padding: 4px 8px; font-size: 12px; background: #e53e3e;">删除</button>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>user001</td>
+                                    <td>user001@company.com</td>
+                                    <td>普通用户</td>
+                                    <td><span class="status-badge status-success">活跃</span></td>
+                                    <td>2024-03-14 16:45</td>
+                                    <td>
+                                        <button class="btn" style="padding: 4px 8px; font-size: 12px; margin-right: 5px;">编辑</button>
+                                        <button class="btn" style="padding: 4px 8px; font-size: 12px; background: #e53e3e;">删除</button>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>auditor01</td>
+                                    <td>auditor01@company.com</td>
+                                    <td>审核员</td>
+                                    <td><span class="status-badge status-warning">离线</span></td>
+                                    <td>2024-03-12 14:20</td>
+                                    <td>
+                                        <button class="btn" style="padding: 4px 8px; font-size: 12px; margin-right: 5px;">编辑</button>
+                                        <button class="btn" style="padding: 4px 8px; font-size: 12px; background: #e53e3e;">删除</button>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentPanel = 'newAudit';
+        let currentResultTab = 'initial';
+        let selectedSchemeType = null;
+        let uploadedFile = null;
+
+        // 登录功能
+        function login() {
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+
+            if (!username || !password) {
+                alert('请输入用户名和密码！');
+                return;
+            }
+
+            // 简单的登录验证（实际项目中应该调用后端API）
+            if (username && password) {
+                document.getElementById('currentUser').textContent = username;
+                document.getElementById('loginPage').style.display = 'none';
+                document.getElementById('mainSystem').style.display = 'block';
+            }
+        }
+
+        // 退出登录
+        function logout() {
+            if (confirm('确认退出登录？')) {
+                document.getElementById('loginPage').style.display = 'flex';
+                document.getElementById('mainSystem').style.display = 'none';
+                document.getElementById('username').value = '';
+                document.getElementById('password').value = '';
+            }
+        }
+
+        // 切换面板
+        function switchPanel(panelId) {
+            // 移除所有导航项的活跃状态
+            document.querySelectorAll('.nav-item').forEach(item => {
+                item.classList.remove('active');
+            });
+
+            // 隐藏所有内容面板
+            document.querySelectorAll('.content-panel').forEach(panel => {
+                panel.classList.remove('active');
+            });
+
+            // 激活当前点击的导航项
+            event.target.classList.add('active');
+
+            // 显示对应的内容面板
+            document.getElementById(panelId).classList.add('active');
+            currentPanel = panelId;
+        }
+
+        // 文件上传处理
+        function handleFileUpload(input) {
+            if (input.files && input.files[0]) {
+                const file = input.files[0];
+                uploadedFile = file;
+                document.getElementById('fileName').textContent = `已选择文件: ${file.name}`;
+
+                // 添加文件大小检查
+                if (file.size > 50 * 1024 * 1024) {
+                    alert('文件大小不能超过50MB！');
+                    input.value = '';
+                    document.getElementById('fileName').textContent = '';
+                    uploadedFile = null;
+                }
+            }
+        }
+
+        // 选择方案类型
+        function selectSchemeType(element, type) {
+            // 移除所有方案类型的选中状态
+            document.querySelectorAll('.scheme-type').forEach(item => {
+                item.classList.remove('selected');
+            });
+
+            // 激活当前选中的方案类型
+            element.classList.add('selected');
+            selectedSchemeType = type;
+        }
+
+        // 开始审核
+        function startAudit() {
+            if (!uploadedFile) {
+                alert('请先上传方案文件！');
+                return;
+            }
+
+            if (!selectedSchemeType) {
+                alert('请选择方案类型！');
+                return;
+            }
+
+            alert(`开始审核文件: ${uploadedFile.name}\n方案类型: ${getSchemeTypeName(selectedSchemeType)}\n\n审核预计需要3-5分钟，请稍候...`);
+
+            // 这里可以添加实际的审核逻辑，比如调用后端API
+            setTimeout(() => {
+                alert('审核完成！请在"审核结果管理"中查看结果。');
+                switchPanel('resultManagement');
+                // 更新导航状态
+                document.querySelectorAll('.nav-item').forEach(item => {
+                    item.classList.remove('active');
+                });
+                document.querySelectorAll('.nav-item')[1].classList.add('active');
+            }, 2000);
+        }
+
+        // 获取方案类型名称
+        function getSchemeTypeName(type) {
+            const typeNames = {
+                'general': '通用类',
+                'procurement': '采购类',
+                'development': '技术开发类',
+                'construction': '建筑工程类'
+            };
+            return typeNames[type] || '未知类型';
+        }
+
+        // 切换审核结果标签
+        function switchResultTab(element, tabId) {
+            // 移除所有标签的活跃状态
+            document.querySelectorAll('.result-tab').forEach(tab => {
+                tab.classList.remove('active');
+            });
+
+            // 激活当前标签
+            element.classList.add('active');
+
+            // 隐藏所有结果内容
+            document.querySelectorAll('.result-content').forEach(content => {
+                content.style.display = 'none';
+            });
+
+            // 显示对应的结果内容
+            const contentMap = {
+                'initial': 'initialResult',
+                'review': 'reviewResult',
+                'comprehensive': 'comprehensiveResult',
+                'download': 'downloadResult'
+            };
+
+            document.getElementById(contentMap[tabId]).style.display = 'block';
+            currentResultTab = tabId;
+        }
+
+        // 下载结果
+        function downloadResult(type) {
+            const typeNames = {
+                'initial': '定制化初审结果',
+                'review': '智能复审结果',
+                'comprehensive': '综合审核结果'
+            };
+
+            alert(`正在生成并下载${typeNames[type]}文档...`);
+
+            // 模拟文件下载
+            setTimeout(() => {
+                // 创建虚拟下载链接
+                const link = document.createElement('a');
+                link.href = '#';
+                link.download = `${typeNames[type]}_${new Date().toISOString().slice(0, 10)}.docx`;
+
+                // 实际项目中这里应该是真实的文件URL
+                alert(`${typeNames[type]}文档下载完成！`);
+            }, 1000);
+        }
+
+        // 规则文件上传处理
+        function handleRuleFileUpload(input) {
+            if (input.files && input.files[0]) {
+                const file = input.files[0];
+                document.getElementById('ruleFileName').textContent = `已选择文件: ${file.name}`;
+            }
+        }
+
+        // 上传规则文件
+        function uploadRuleFile() {
+            const fileInput = document.getElementById('ruleFileInput');
+            if (!fileInput.files || !fileInput.files[0]) {
+                alert('请先选择要上传的标准文件！');
+                return;
+            }
+
+            alert('正在上传并解析标准文件，请稍候...');
+
+            // 模拟上传和解析过程
+            setTimeout(() => {
+                alert('标准文件上传并解析完成！新的审核规则已生效。');
+                // 清空文件选择
+                fileInput.value = '';
+                document.getElementById('ruleFileName').textContent = '';
+            }, 2000);
+        }
+
+        // 键盘事件监听
+        document.addEventListener('keypress', function(event) {
+            if (event.key === 'Enter') {
+                const loginPage = document.getElementById('loginPage');
+                if (loginPage.style.display !== 'none') {
+                    login();
+                }
+            }
+        });
+
+        // 页面加载完成后的初始化
+        document.addEventListener('DOMContentLoaded', function() {
+            // 设置初始焦点
+            document.getElementById('username').focus();
+        });
+    </script>
+</body>
+</html>
