@@ -1,0 +1,13 @@
+text2vec>=1.2.8
+jieba>=0.39
+loguru
+transformers
+Pillow
+autofaiss
+fire
+fastapi
+uvicorn
+pydantic
+requests
+starlette
+gradio
